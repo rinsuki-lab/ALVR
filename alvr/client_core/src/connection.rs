@@ -126,7 +126,7 @@ fn connection_pipeline(
 ) -> ConResult {
     let (mut proto_control_socket, server_ip) = {
         let config = Config::load();
-        let announcer_socket = AnnouncerSocket::new(&config.hostname).to_con()?;
+        // let announcer_socket = AnnouncerSocket::new(&config.hostname).to_con()?;
         let listener_socket =
             alvr_sockets::get_server_listener(HANDSHAKE_ACTION_TIMEOUT).to_con()?;
 
@@ -135,17 +135,17 @@ fn connection_pipeline(
                 return Ok(());
             }
 
-            if let Err(e) = announcer_socket.broadcast() {
-                warn!("Broadcast error: {e:?}");
+            // if let Err(e) = announcer_socket.broadcast() {
+            //     warn!("Broadcast error: {e:?}");
 
-                set_hud_message(NETWORK_UNREACHABLE_MESSAGE);
+            //     set_hud_message(NETWORK_UNREACHABLE_MESSAGE);
 
-                thread::sleep(RETRY_CONNECT_MIN_INTERVAL);
+            //     thread::sleep(RETRY_CONNECT_MIN_INTERVAL);
 
-                set_hud_message(INITIAL_MESSAGE);
+            //     set_hud_message(INITIAL_MESSAGE);
 
-                return Ok(());
-            }
+            //     return Ok(());
+            // }
 
             if let Ok(pair) = ProtoControlSocket::connect_to(
                 DISCOVERY_RETRY_PAUSE,
