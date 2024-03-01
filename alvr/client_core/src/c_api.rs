@@ -1,7 +1,4 @@
-use crate::{
-    opengl::{self, RenderViewInput},
-    storage, ClientCapabilities, ClientCoreEvent,
-};
+use crate::{graphics, storage, ClientCapabilities, ClientCoreEvent};
 use alvr_common::{
     debug, error,
     glam::{Quat, UVec2, Vec2, Vec3},
@@ -11,7 +8,7 @@ use alvr_common::{
     warn, DeviceMotion, Fov, Pose,
 };
 use alvr_packets::{ButtonEntry, ButtonValue, FaceData, Tracking};
-use alvr_session::{CodecType, FoveatedEncodingConfig};
+use alvr_session::CodecType;
 use std::{
     collections::VecDeque,
     ffi::{c_char, c_void, CStr, CString},
@@ -559,127 +556,120 @@ pub struct AlvrStreamConfig {
     pub view_resolution_height: u32,
     pub swapchain_textures: *mut *const u32,
     pub swapchain_length: u32,
-    pub enable_foveation: bool,
-    pub foveation_center_size_x: f32,
-    pub foveation_center_size_y: f32,
-    pub foveation_center_shift_x: f32,
-    pub foveation_center_shift_y: f32,
-    pub foveation_edge_ratio_x: f32,
-    pub foveation_edge_ratio_y: f32,
+    pub foveation_json: *const c_char,
 }
 
 #[no_mangle]
-pub extern "C" fn alvr_initialize_opengl() {
-    opengl::initialize();
+pub extern "C" fn alvr_initialize_gl() {
+    graphics::initialize_gl();
 }
+
+// unsafe fn convert_swapchain_array(
+//     swapchain_textures: *mut *const u32,
+//     swapchain_length: u32,
+// ) -> [Vec<u32>; 2] {
+//     let swapchain_length = swapchain_length as usize;
+//     let mut left_swapchain = vec![0; swapchain_length];
+//     ptr::copy_nonoverlapping(
+//         *swapchain_textures,
+//         left_swapchain.as_mut_ptr(),
+//         swapchain_length,
+//     );
+//     let mut right_swapchain = vec![0; swapchain_length];
+//     ptr::copy_nonoverlapping(
+//         *swapchain_textures.offset(1),
+//         right_swapchain.as_mut_ptr(),
+//         swapchain_length,
+//     );
+
+//     [left_swapchain, right_swapchain]
+// }
 
 #[no_mangle]
-pub extern "C" fn alvr_destroy_opengl() {
-    opengl::destroy();
-}
-
-unsafe fn convert_swapchain_array(
-    swapchain_textures: *mut *const u32,
-    swapchain_length: u32,
-) -> [Vec<u32>; 2] {
-    let swapchain_length = swapchain_length as usize;
-    let mut left_swapchain = vec![0; swapchain_length];
-    ptr::copy_nonoverlapping(
-        *swapchain_textures,
-        left_swapchain.as_mut_ptr(),
-        swapchain_length,
-    );
-    let mut right_swapchain = vec![0; swapchain_length];
-    ptr::copy_nonoverlapping(
-        *swapchain_textures.offset(1),
-        right_swapchain.as_mut_ptr(),
-        swapchain_length,
-    );
-
-    [left_swapchain, right_swapchain]
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn alvr_resume_opengl(
+pub unsafe extern "C" fn alvr_resume_gl(
     preferred_view_width: u32,
     preferred_view_height: u32,
-    swapchain_textures: *mut *const u32,
+    swapchain_textures: *const u32,
     swapchain_length: u32,
 ) {
-    opengl::resume(
-        UVec2::new(preferred_view_width, preferred_view_height),
-        convert_swapchain_array(swapchain_textures, swapchain_length),
-    );
+    let swapchain_textures = slice::from_raw_parts(swapchain_textures, swapchain_length as _);
+
+    // graphics::
+
+    // opengl::resume(
+    //     UVec2::new(preferred_view_width, preferred_view_height),
+    //     convert_swapchain_array(swapchain_textures, swapchain_length),
+    // );
 }
 
 #[no_mangle]
 pub extern "C" fn alvr_pause_opengl() {
-    opengl::pause();
+    // opengl::pause();
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn alvr_update_hud_message_opengl(message: *const c_char) {
-    opengl::update_hud_message(CStr::from_ptr(message).to_str().unwrap());
+    // opengl::update_hud_message(CStr::from_ptr(message).to_str().unwrap());
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn alvr_start_stream_opengl(config: AlvrStreamConfig) {
-    let view_resolution = UVec2::new(config.view_resolution_width, config.view_resolution_height);
-    let swapchain_textures =
-        convert_swapchain_array(config.swapchain_textures, config.swapchain_length);
-    let foveated_encoding = config.enable_foveation.then_some(FoveatedEncodingConfig {
-        force_enable: true,
-        center_size_x: config.foveation_center_size_x,
-        center_size_y: config.foveation_center_size_y,
-        center_shift_x: config.foveation_center_shift_x,
-        center_shift_y: config.foveation_center_shift_y,
-        edge_ratio_x: config.foveation_edge_ratio_x,
-        edge_ratio_y: config.foveation_edge_ratio_y,
-    });
+    // let view_resolution = UVec2::new(config.view_resolution_width, config.view_resolution_height);
+    // let swapchain_textures =
+    //     convert_swapchain_array(config.swapchain_textures, config.swapchain_length);
+    // let foveated_encoding = config.enable_foveation.then_some(FoveatedEncodingConfig {
+    // force_enable: true,
+    //     center_size_x: config.foveation_center_size_x,
+    //     center_size_y: config.foveation_center_size_y,
+    //     center_shift_x: config.foveation_center_shift_x,
+    //     center_shift_y: config.foveation_center_shift_y,
+    //     edge_ratio_x: config.foveation_edge_ratio_x,
+    //     edge_ratio_y: config.foveation_edge_ratio_y,
+    // });
 
-    opengl::start_stream(view_resolution, swapchain_textures, foveated_encoding, true);
+    // opengl::start_stream(view_resolution, swapchain_textures, foveated_encoding, true);
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn alvr_render_lobby_opengl(view_inputs: *const AlvrViewInput) {
-    let view_inputs = [
-        {
-            let o = (*view_inputs).orientation;
-            let f = (*view_inputs).fov;
-            RenderViewInput {
-                pose: Pose {
-                    orientation: Quat::from_xyzw(o.x, o.y, o.z, o.w),
-                    position: Vec3::from_array((*view_inputs).position),
-                },
-                fov: Fov {
-                    left: f.left,
-                    right: f.right,
-                    up: f.up,
-                    down: f.down,
-                },
-                swapchain_index: (*view_inputs).swapchain_index,
-            }
-        },
-        {
-            let o = (*view_inputs.offset(1)).orientation;
-            let f = (*view_inputs.offset(1)).fov;
-            RenderViewInput {
-                pose: Pose {
-                    orientation: Quat::from_xyzw(o.x, o.y, o.z, o.w),
-                    position: Vec3::from_array((*view_inputs.offset(1)).position),
-                },
-                fov: Fov {
-                    left: f.left,
-                    right: f.right,
-                    up: f.up,
-                    down: f.down,
-                },
-                swapchain_index: (*view_inputs.offset(1)).swapchain_index,
-            }
-        },
-    ];
+    // let view_inputs = [
+    //     {
+    //         let o = (*view_inputs).orientation;
+    //         let f = (*view_inputs).fov;
+    //         RenderViewInput {
+    //             pose: Pose {
+    //                 orientation: Quat::from_xyzw(o.x, o.y, o.z, o.w),
+    //                 position: Vec3::from_array((*view_inputs).position),
+    //             },
+    //             fov: Fov {
+    //                 left: f.left,
+    //                 right: f.right,
+    //                 up: f.up,
+    //                 down: f.down,
+    //             },
+    //             swapchain_index: (*view_inputs).swapchain_index,
+    //         }
+    //     },
+    //     {
+    //         let o = (*view_inputs.offset(1)).orientation;
+    //         let f = (*view_inputs.offset(1)).fov;
+    //         RenderViewInput {
+    //             pose: Pose {
+    //                 orientation: Quat::from_xyzw(o.x, o.y, o.z, o.w),
+    //                 position: Vec3::from_array((*view_inputs.offset(1)).position),
+    //             },
+    //             fov: Fov {
+    //                 left: f.left,
+    //                 right: f.right,
+    //                 up: f.up,
+    //                 down: f.down,
+    //             },
+    //             swapchain_index: (*view_inputs.offset(1)).swapchain_index,
+    //         }
+    //     },
+    // ];
 
-    opengl::render_lobby(view_inputs);
+    // opengl::render_lobby(view_inputs);
 }
 
 #[no_mangle]
@@ -687,8 +677,13 @@ pub unsafe extern "C" fn alvr_render_stream_opengl(
     hardware_buffer: *mut c_void,
     swapchain_indices: *const u32,
 ) {
-    opengl::render_stream(
-        hardware_buffer,
-        [*swapchain_indices, *swapchain_indices.offset(1)],
-    );
+    // opengl::render_stream(
+    //     hardware_buffer,
+    //     [*swapchain_indices, *swapchain_indices.offset(1)],
+    // );
+}
+
+#[no_mangle]
+pub extern "C" fn alvr_destroy_opengl() {
+    graphics::destroy_gl();
 }
