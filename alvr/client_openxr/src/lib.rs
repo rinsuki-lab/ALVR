@@ -83,14 +83,14 @@ struct StreamInputContext {
     last_hand_positions: [Vec3; 2],
 }
 
-#[allow(unused)]
-struct EglContext {
-    instance: egl::DynamicInstance<EGL1_4>,
-    display: egl::Display,
-    config: egl::Config,
-    context: egl::Context,
-    dummy_surface: egl::Surface,
-}
+// #[allow(unused)]
+// struct EglContext {
+//     instance: egl::DynamicInstance<EGL1_4>,
+//     display: egl::Display,
+//     config: egl::Config,
+//     context: egl::Context,
+//     dummy_surface: egl::Surface,
+// }
 
 fn to_vec3(v: xr::Vector3f) -> Vec3 {
     Vec3::new(v.x, v.y, v.z)
@@ -140,99 +140,99 @@ fn to_xr_time(timestamp: Duration) -> xr::Time {
     xr::Time::from_nanos(timestamp.as_nanos() as _)
 }
 
-#[allow(unused_variables)]
-fn init_egl() -> EglContext {
-    let instance = unsafe { egl::DynamicInstance::<EGL1_4>::load_required().unwrap() };
+// #[allow(unused_variables)]
+// fn init_egl() -> EglContext {
+//     let instance = unsafe { egl::DynamicInstance::<EGL1_4>::load_required().unwrap() };
 
-    let display = unsafe { instance.get_display(egl::DEFAULT_DISPLAY).unwrap() };
+//     let display = unsafe { instance.get_display(egl::DEFAULT_DISPLAY).unwrap() };
 
-    let version = instance.initialize(display).unwrap();
+//     let version = instance.initialize(display).unwrap();
 
-    let mut configs = Vec::with_capacity(instance.get_config_count(display).unwrap());
-    instance.get_configs(display, &mut configs).unwrap();
+//     let mut configs = Vec::with_capacity(instance.get_config_count(display).unwrap());
+//     instance.get_configs(display, &mut configs).unwrap();
 
-    const CONFIG_ATTRIBS: [i32; 19] = [
-        egl::RED_SIZE,
-        8,
-        egl::GREEN_SIZE,
-        8,
-        egl::BLUE_SIZE,
-        8,
-        egl::ALPHA_SIZE,
-        8,
-        egl::DEPTH_SIZE,
-        0,
-        egl::STENCIL_SIZE,
-        0,
-        egl::SAMPLES,
-        0,
-        egl::SURFACE_TYPE,
-        egl::PBUFFER_BIT,
-        egl::RENDERABLE_TYPE,
-        egl::OPENGL_ES3_BIT,
-        egl::NONE,
-    ];
-    let config = instance
-        .choose_first_config(display, &CONFIG_ATTRIBS)
-        .unwrap()
-        .unwrap();
+//     const CONFIG_ATTRIBS: [i32; 19] = [
+//         egl::RED_SIZE,
+//         8,
+//         egl::GREEN_SIZE,
+//         8,
+//         egl::BLUE_SIZE,
+//         8,
+//         egl::ALPHA_SIZE,
+//         8,
+//         egl::DEPTH_SIZE,
+//         0,
+//         egl::STENCIL_SIZE,
+//         0,
+//         egl::SAMPLES,
+//         0,
+//         egl::SURFACE_TYPE,
+//         egl::PBUFFER_BIT,
+//         egl::RENDERABLE_TYPE,
+//         egl::OPENGL_ES3_BIT,
+//         egl::NONE,
+//     ];
+//     let config = instance
+//         .choose_first_config(display, &CONFIG_ATTRIBS)
+//         .unwrap()
+//         .unwrap();
 
-    instance.bind_api(egl::OPENGL_ES_API).unwrap();
+//     instance.bind_api(egl::OPENGL_ES_API).unwrap();
 
-    const CONTEXT_ATTRIBS: [i32; 3] = [egl::CONTEXT_CLIENT_VERSION, 3, egl::NONE];
-    let context = instance
-        .create_context(display, config, None, &CONTEXT_ATTRIBS)
-        .unwrap();
+//     const CONTEXT_ATTRIBS: [i32; 3] = [egl::CONTEXT_CLIENT_VERSION, 3, egl::NONE];
+//     let context = instance
+//         .create_context(display, config, None, &CONTEXT_ATTRIBS)
+//         .unwrap();
 
-    const PBUFFER_ATTRIBS: [i32; 5] = [egl::WIDTH, 16, egl::HEIGHT, 16, egl::NONE];
-    let dummy_surface = instance
-        .create_pbuffer_surface(display, config, &PBUFFER_ATTRIBS)
-        .unwrap();
+//     const PBUFFER_ATTRIBS: [i32; 5] = [egl::WIDTH, 16, egl::HEIGHT, 16, egl::NONE];
+//     let dummy_surface = instance
+//         .create_pbuffer_surface(display, config, &PBUFFER_ATTRIBS)
+//         .unwrap();
 
-    instance
-        .make_current(
-            display,
-            Some(dummy_surface),
-            Some(dummy_surface),
-            Some(context),
-        )
-        .unwrap();
+//     instance
+//         .make_current(
+//             display,
+//             Some(dummy_surface),
+//             Some(dummy_surface),
+//             Some(context),
+//         )
+//         .unwrap();
 
-    EglContext {
-        instance,
-        display,
-        config,
-        context,
-        dummy_surface,
-    }
-}
+//     EglContext {
+//         instance,
+//         display,
+//         config,
+//         context,
+//         dummy_surface,
+//     }
+// }
 
-#[allow(unused)]
-fn create_xr_session(
-    xr_instance: &xr::Instance,
-    xr_system: xr::SystemId,
-    egl_context: &EglContext,
-) -> (
-    xr::Session<xr::OpenGlEs>,
-    xr::FrameWaiter,
-    xr::FrameStream<xr::OpenGlEs>,
-) {
-    #[cfg(target_os = "android")]
-    unsafe {
-        xr_instance
-            .create_session(
-                xr_system,
-                &xr::opengles::SessionCreateInfo::Android {
-                    display: egl_context.display.as_ptr(),
-                    config: egl_context.config.as_ptr(),
-                    context: egl_context.context.as_ptr(),
-                },
-            )
-            .unwrap()
-    }
-    #[cfg(not(target_os = "android"))]
-    unimplemented!()
-}
+// #[allow(unused)]
+// fn create_xr_session(
+//     xr_instance: &xr::Instance,
+//     xr_system: xr::SystemId,
+//     egl_context: &EglContext,
+// ) -> (
+//     xr::Session<xr::OpenGlEs>,
+//     xr::FrameWaiter,
+//     xr::FrameStream<xr::OpenGlEs>,
+// ) {
+//     #[cfg(target_os = "android")]
+//     unsafe {
+//         xr_instance
+//             .create_session(
+//                 xr_system,
+//                 &xr::opengles::SessionCreateInfo::Android {
+//                     display: egl_context.display.as_ptr(),
+//                     config: egl_context.config.as_ptr(),
+//                     context: egl_context.context.as_ptr(),
+//                 },
+//             )
+//             .unwrap()
+//     }
+//     #[cfg(not(target_os = "android"))]
+//     unimplemented!()
+// }
 
 pub fn create_swapchain(
     session: &xr::Session<xr::OpenGlEs>,
@@ -488,37 +488,23 @@ fn initialize_stream(
         None
     };
 
-    let swapchains = [
-        create_swapchain(
-            &xr_ctx.session,
-            stream_view_resolution,
-            foveation_profile.as_ref(),
-        ),
-        create_swapchain(
-            &xr_ctx.session,
-            stream_view_resolution,
-            foveation_profile.as_ref(),
-        ),
-    ];
-
-    alvr_client_core::opengl::start_stream(
+    let swapchain = create_swapchain(
+        &xr_ctx.session,
         stream_view_resolution,
-        [
-            swapchains[0]
-                .enumerate_images()
-                .unwrap()
-                .iter()
-                .map(|i| *i as _)
-                .collect(),
-            swapchains[1]
-                .enumerate_images()
-                .unwrap()
-                .iter()
-                .map(|i| *i as _)
-                .collect(),
-        ],
+        foveation_profile.as_ref(),
+    );
+
+    alvr_client_core::graphics::initialize_stream_renderer_gl(
+        3, // todo: check actual number
+        stream_view_resolution,
+        &swapchain
+            .enumerate_images()
+            .unwrap()
+            .iter()
+            .map(|i| *i as _)
+            .collect::<Vec<_>>(),
         config.foveated_encoding_config.clone(),
-        platform != Platform::Lynx,
+        platform == Platform::Lynx,
     );
 
     alvr_client_core::send_playspace(
@@ -637,6 +623,8 @@ pub fn entry_point() {
         )
         .unwrap();
 
+    alvr_client_core::graphics::initialize_gl();
+
     let egl_context = init_egl();
 
     let mut last_lobby_message = String::new();
@@ -694,8 +682,7 @@ pub fn entry_point() {
             });
         });
 
-        alvr_client_core::opengl::initialize();
-        alvr_client_core::opengl::update_hud_message(&last_lobby_message);
+        // alvr_client_core::graphics::update_hud_message(&last_lobby_message);
 
         let interaction_context = Arc::new(interaction::initialize_interaction(
             &xr_ctx,
@@ -994,7 +981,7 @@ pub fn entry_point() {
                     .wait_image(xr::Duration::INFINITE)
                     .unwrap();
 
-                alvr_client_core::opengl::render_stream(
+                alvr_client_core::graphics::render_stream(
                     hardware_buffer,
                     [left_swapchain_idx, right_swapchain_idx],
                 );
@@ -1038,18 +1025,18 @@ pub fn entry_point() {
                     .wait_image(xr::Duration::INFINITE)
                     .unwrap();
 
-                alvr_client_core::opengl::render_lobby([
-                    RenderViewInput {
-                        pose: to_pose(views[0].pose),
-                        fov: to_fov(views[0].fov),
-                        swapchain_index: left_swapchain_idx,
-                    },
-                    RenderViewInput {
-                        pose: to_pose(views[1].pose),
-                        fov: to_fov(views[1].fov),
-                        swapchain_index: right_swapchain_idx,
-                    },
-                ]);
+                // alvr_client_core::opengl::render_lobby([
+                //     RenderViewInput {
+                //         pose: to_pose(views[0].pose),
+                //         fov: to_fov(views[0].fov),
+                //         swapchain_index: left_swapchain_idx,
+                //     },
+                //     RenderViewInput {
+                //         pose: to_pose(views[1].pose),
+                //         fov: to_fov(views[1].fov),
+                //         swapchain_index: right_swapchain_idx,
+                //     },
+                // ]);
 
                 session_context.lobby_swapchains[0].release_image().unwrap();
                 session_context.lobby_swapchains[1].release_image().unwrap();

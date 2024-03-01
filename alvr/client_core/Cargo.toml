@@ -16,6 +16,7 @@ default = ["link-stdcpp-shared"]
 [dependencies]
 alvr_audio.workspace = true
 alvr_common.workspace = true
+alvr_graphics.workspace = true
 alvr_packets.workspace = true
 alvr_session.workspace = true
 alvr_sockets.workspace = true
@@ -33,14 +34,10 @@ whoami = "1"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13"
-jni = "0.21"
-ndk = { version = "0.8", features = [
-    "api-level-26",
-    "media",
-] }
+ndk = { version = "0.8", features = ["api-level-26", "media"] }
 ndk-context = "0.1"
 ndk-sys = "0.5"
-oboe = "0.5" # todo: remove once AudioThread shutdown crash is fixed
+oboe = "0.5"                                                    # todo: remove once AudioThread shutdown crash is fixed
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 env_logger = "0.11"

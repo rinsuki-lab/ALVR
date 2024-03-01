@@ -14,7 +14,7 @@ mod sockets;
 mod statistics;
 mod storage;
 
-pub mod opengl;
+pub mod graphics;
 
 #[cfg(target_os = "android")]
 mod audio;

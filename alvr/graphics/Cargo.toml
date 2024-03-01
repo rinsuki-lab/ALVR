@@ -1,0 +1,17 @@
+[package]
+name = "alvr_graphics"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+alvr_common.workspace = true
+
+glow = "0.13"
+khronos-egl = "6"
+pollster = "0.3"
+rend3 = { git = "https://github.com/BVE-Reborn/rend3" }
+wgpu = "0.19"
+wgpu-core = { version = "0.19", features = ["gles"] }
