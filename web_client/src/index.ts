@@ -1,4 +1,5 @@
 import { BitReader } from "./bit_reader"
+import { parseInitNALUHEVC } from "./parser/hevc"
 import { srcFragmentShader, srcVertexShader } from "./shader"
 
 class DiveSession {
@@ -198,6 +199,10 @@ class DiveSession {
                 // frame ready
                 // u128 timestamp
                 // ... nal
+                if (this.videoDecoder == null) {
+                    // we can't do anything if decoder is missing
+                    return
+                }
                 const timestamp = arr.getBigUint64(8, true) | (arr.getBigUint64(16, true) << 32n)
                 let nal: Uint8Array
                 if (this.spsAndPps != null) {
@@ -223,7 +228,7 @@ class DiveSession {
                 console.log(this.spsAndPps, isKey, timestamp)
                 if (this.videoDecoder != null) {
                     const init = {
-                        type: isKey === 0b11 ? "key" : "delta",
+                        type: this.spsAndPps != null ? "key" : "delta",
                         timestamp: Number(timestamp),
                         data: nal,
                         // transfer: [nal.buffer],
@@ -235,67 +240,105 @@ class DiveSession {
                 }
             }
             if (messageType === 2) {
+                // create decoder
+                // u32 codec
+                // ... nal
                 const codec = arr.getUint32(4, true)
-                if (codec !== 0) {
-                    alert(`unsupported codec: ${codec}`)
-                    return
-                }
-                const initNal = new Uint8Array(e.data, 8)
-                console.log(initNal)
-                this.videoDecoder?.close()
-    
-                // read SPS
-                const initNalReader = new BitReader(initNal)
-                let count = 0
-                while (initNalReader.read(8) === 0) count++
-                if (count < 2) {
-                    alert("invalid initNal: not starting with 0x000001")
-                    this.ws.close()
-                    return
-                }
-                if (initNalReader.read(1) !== 0) {
-                    alert("invalid initNal: forbidden_zero_bit not 0")
-                    return
-                }
-                if (initNalReader.read(2) !== 0b11) {
-                    alert("invalid initNal: nal_ref_idc not 0b11")
-                    return
-                }
-                if (initNalReader.read(5) !== 7) {
-                    alert("invalid initNal: nal_unit_type not 7 (SPS)")
-                    return
-                }
-                const profile_idc = initNalReader.read(8)
-                const constraint_flags = initNalReader.read(8)
-                const level_idc = initNalReader.read(8)
-                const codecString = `avc1.${[profile_idc, constraint_flags, level_idc].map(x => x.toString(16).padStart(2, "0")).join("")}`
-                const seq_parameter_set_id = initNalReader.uev()
-                console.log(seq_parameter_set_id)
-    
-                console.log(codecString)
-
                 if (this.videoDecoder != null) {
                     if (this.videoDecoder.state !== "closed") this.videoDecoder.close()
                 }
-    
-                this.videoDecoder = new VideoDecoder({
-                    output: (frame) => {
-                        this.ws.send(`decoded:${frame.timestamp}`)
-                        this.lastFrame?.close()
-                        this.lastFrame = frame
-                    },
-                    error: (e) => {
-                        console.error(e)
-                        this.ws.send("idr")
-                        this.videoDecoder = undefined
-                    }
-                })
-                this.videoDecoder.configure({
-                    codec: codecString,
-                    optimizeForLatency: true,
-                })
-                this.spsAndPps = new Uint8Array(e.data, 8)
+                const initNal = new Uint8Array(e.data, 8)
+                console.log(initNal)
+                if (codec === 0) {
+                    this.initializeH264(initNal)
+                } else if (codec === 1) {
+                    this.initializeHEVC(initNal)
+                } else {
+                    alert(`unsupported codec: ${codec}`)
+                    return
+                }
             }
+        }
+    }
+
+    initializeH264(initNal: Uint8Array) {
+        // read SPS
+        const initNalReader = new BitReader(initNal)
+        let count = 0
+        while (initNalReader.read(8) === 0) count++
+        if (count < 2) {
+            alert("invalid initNal: not starting with 0x000001")
+            this.ws.close()
+            return
+        }
+        if (initNalReader.read(1) !== 0) {
+            alert("invalid initNal: forbidden_zero_bit not 0")
+            return
+        }
+        if (initNalReader.read(2) !== 0b11) {
+            alert("invalid initNal: nal_ref_idc not 0b11")
+            return
+        }
+        if (initNalReader.read(5) !== 7) {
+            alert("invalid initNal: nal_unit_type not 7 (SPS)")
+            return
+        }
+        const profile_idc = initNalReader.read(8)
+        const constraint_flags = initNalReader.read(8)
+        const level_idc = initNalReader.read(8)
+        const codecString = `avc1.${[profile_idc, constraint_flags, level_idc].map(x => x.toString(16).padStart(2, "0")).join("")}`
+        const seq_parameter_set_id = initNalReader.uev()
+        console.log(seq_parameter_set_id)
+
+        console.log(codecString)
+
+
+        this.videoDecoder = new VideoDecoder({
+            output: (frame) => {
+                this.ws.send(`decoded:${frame.timestamp}`)
+                this.lastFrame?.close()
+                this.lastFrame = frame
+            },
+            error: (e) => {
+                console.error(e)
+                this.ws.send("idr")
+                this.videoDecoder = undefined
+            }
+        })
+        this.videoDecoder.configure({
+            codec: codecString,
+            optimizeForLatency: true,
+        })
+        this.spsAndPps = initNal
+    }
+
+    initializeHEVC(initNal: Uint8Array) {
+        try {
+            const codecString = parseInitNALUHEVC(initNal)
+
+            this.videoDecoder = new VideoDecoder({
+                output: (frame) => {
+                    this.ws.send(`decoded:${frame.timestamp}`)
+                    this.lastFrame?.close()
+                    this.lastFrame = frame
+                },
+                error: (e) => {
+                    console.error(e)
+                    this.ws.send("idr")
+                    this.videoDecoder = undefined
+                }
+            })
+            console.log(codecString)
+            this.videoDecoder.configure({
+                codec: codecString,
+                optimizeForLatency: true,
+            })
+            this.spsAndPps = initNal
+        } catch (e) {
+            console.error(e)
+            alert(e)
+            this.ws.close()
+            return
         }
     }
 }

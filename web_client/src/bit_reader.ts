@@ -16,6 +16,16 @@ export class BitReader {
         return res
     }
 
+    readBigInt(n: number) {
+        let res = 0n
+        for (let i = 0; i < n; i++) {
+            res <<= 1n
+            res |= BigInt((this.data[this.offset >> 3] >> (7 - (this.offset & 7))) & 1)
+            this.offset++
+        }
+        return res
+    }
+
     uev() { // Exponential-Golomb Codes
         let leadingZeroBits = 0
         while (this.read(1) === 0) {
