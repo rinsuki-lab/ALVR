@@ -31,7 +31,7 @@ class DiveSession {
         } catch(e) {
             console.error(e)
         }
-        this.referenceSpace = await this.session.requestReferenceSpace("local")
+        this.referenceSpace = await this.session.requestReferenceSpace("local-floor")
         const vs = this.gl.createShader(this.gl.VERTEX_SHADER)
         if (vs == null) throw new Error("vs fail")
         this.gl.shaderSource(vs, srcVertexShader)
@@ -363,6 +363,7 @@ if (navigator.xr == null) {
         document.body.appendChild(canvas)
         navigator.xr?.requestSession("immersive-vr", {
             // domOverlay: { root: document.body }
+            requiredFeatures: ["local-floor"],
         }).then(async session => {
             const dive = new DiveSession(session, gl)
             await dive.setup()
