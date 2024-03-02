@@ -1,0 +1,18 @@
+{
+  "name": "web_client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/dom-webcodecs": "^0.1.11",
+    "@types/webxr": "^0.5.14",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
+  }
+}

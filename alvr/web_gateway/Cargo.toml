@@ -1,0 +1,31 @@
+[package]
+name = "web_gateway"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+alvr_common.workspace = true
+alvr_client_core.workspace = true
+alvr_packets.workspace = true
+
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+] }
+tokio-tungstenite = "0.20"
+
+hyper = { version = "0.14", features = [
+    "server",
+    "stream",
+    "runtime",
+    "tcp",
+    "http1",
+] }
+warp = { version = "0.3.6", default-features = false, features = ["websocket"] }
+
+futures-util = "0.3.28"

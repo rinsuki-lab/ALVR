@@ -1,3 +1,19 @@
+# alvr-web research
+
+Lets try to port ALVR to Web browser!
+
+NOTE I'm writing this project as proof of concept mode (prefer to reach to "just works" state faster as possible (to reduce chance of get bored me and abandoned) rather than code quality), my code quality is terrible
+
+* alvr/web_gateway: WebSocket server, communicates with WebXR browser and ALVR server (SteamVR)
+* web_client: WebXR client, communicates with web_gateway
+
+Warning, WebXR (and/or) WebCodecs requires "secure context", so you can't get work with HTTP, like `http://192.168.1.5`.
+* If you are using default browser of Oculus/Meta HMD (which is Chromium-base), you can use Chrome port forwarding from open `chrome://inspect/#devices` in your PC
+  * You need to forwarding two port, `5173` (for Vite dev server) and `5999` (for web_gateway)
+* Otherwise, you need to find a way to get HTTPS, or port forwarding to target device's localhost (almost every browser considers `http://localhost` as secure context)
+
+---
+
 <p align="center"> <img width="500" src="resources/alvr_combined_logo_hq.png"/> </p>
 
 # ALVR - Air Light VR
