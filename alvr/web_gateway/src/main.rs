@@ -104,7 +104,7 @@ async fn websocket_handler(websocket: WebSocket) {
                 let resolution = UVec2::new(3840, 2160);
                 alvr_client_core::initialize(
                     resolution,
-                    vec![120.0],
+                    vec![90.0],
                     true,
                 );
                 alvr_client_core::resume();
