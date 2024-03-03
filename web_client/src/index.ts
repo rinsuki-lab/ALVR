@@ -125,23 +125,21 @@ class DiveSession {
             }
 
             // I'm not sure those are correct
+            function reverseFromProjectionMatrix(eye: XRView, prefix: number) {
+                // left, right, up, down
+                msg[prefix + 0] = (eye.projectionMatrix[8]-1)/eye.projectionMatrix[0]
+                msg[prefix + 1] = (eye.projectionMatrix[8]+1)/eye.projectionMatrix[0]
+                msg[prefix + 2] = (eye.projectionMatrix[9]+1)/eye.projectionMatrix[5]
+                msg[prefix + 3] = (eye.projectionMatrix[9]-1)/eye.projectionMatrix[5]
+                console.log(msg[prefix + 0], msg[prefix + 1], msg[prefix + 2], msg[prefix + 3])
+            }
             const leftEye = pose.views.find(v => v.eye === "left")
             if (leftEye != null) {
-                const fovX = Math.atan(1 / leftEye.projectionMatrix[0]) * 2
-                const fovY = Math.atan(1 / leftEye.projectionMatrix[5]) * 2
-                msg[13] = -fovX
-                msg[14] = fovX
-                msg[15] = -fovY
-                msg[16] = fovY
+                reverseFromProjectionMatrix(leftEye, 13)
             }
             const rightEye = pose.views.find(v => v.eye === "right")
             if (rightEye != null) {
-                const fovX = Math.atan(1 / rightEye.projectionMatrix[0]) * 2
-                const fovY = Math.atan(1 / rightEye.projectionMatrix[5]) * 2
-                msg[17] = -fovX
-                msg[18] = fovX
-                msg[19] = -fovY
-                msg[20] = fovY
+                reverseFromProjectionMatrix(rightEye, 17)
             }
 
             this.ws.send(buffer)
@@ -151,6 +149,7 @@ class DiveSession {
             const viewport = this.glLayer.getViewport(view)
             if (viewport == null) continue
             this.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
+            // console.log(viewport.width, viewport.height)
             if (this.lastFrame != null) {
                 this.gl.activeTexture(this.gl.TEXTURE0)
                 this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.lastFrame.codedWidth, this.lastFrame.codedHeight, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null)

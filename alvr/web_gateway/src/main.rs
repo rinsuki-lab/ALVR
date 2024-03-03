@@ -101,7 +101,7 @@ async fn websocket_handler(websocket: WebSocket) {
         if msg.is_text() {
             let text = msg.to_str().unwrap();
             if text == "hello" {
-                let resolution = UVec2::new(3840, 2160);
+                let resolution = UVec2::new(1680, 1760);
                 alvr_client_core::initialize(
                     resolution,
                     vec![90.0],
@@ -123,6 +123,29 @@ async fn websocket_handler(websocket: WebSocket) {
             let prefix = u32::from_le_bytes(data[0..4].try_into().unwrap());
             let timestamp = u64::from_le_bytes(data[4..12].try_into().unwrap());
             if prefix == (WebSocketBinaryClientToServerMessagePrefix::HeadMountDisplayTracking as u8 as u32) {
+                let config = ([
+                    alvr_common::Fov {
+                        left: f32::from_le_bytes(data[64..68].try_into().unwrap()),
+                        right: f32::from_le_bytes(data[68..72].try_into().unwrap()),
+                        up: f32::from_le_bytes(data[72..76].try_into().unwrap()),
+                        down: f32::from_le_bytes(data[76..80].try_into().unwrap()),
+                    },
+                    alvr_common::Fov {
+                        left: f32::from_le_bytes(data[80..84].try_into().unwrap()),
+                        right: f32::from_le_bytes(data[84..88].try_into().unwrap()),
+                        up: f32::from_le_bytes(data[88..92].try_into().unwrap()),
+                        down: f32::from_le_bytes(data[92..96].try_into().unwrap()),
+                    }
+                ], 0.063f32);
+                // println!("config: l.l={}, l.r={}, l.u={}, l.d={}, r.l={}, r.r={}, r.u={}, r.d={}", config.0[0].left, config.0[0].right, config.0[0].up, config.0[0].down, config.0[1].left, config.0[1].right, config.0[1].up, config.0[1].down);
+                if old_config != Some(config) {
+                    println!("config:    {}          {}", config.0[0].up, config.0[1].up);
+                    println!("    {}           {} | {}           {}", config.0[0].left, config.0[0].right, config.0[1].left, config.0[1].right);
+                    println!("           {}          {}", config.0[0].down, config.0[1].down);
+                    alvr_client_core::send_views_config(config.0, config.1);
+                    old_config = Some(config);
+                }
+
                 let pose = alvr_common::DeviceMotion {
                     pose: alvr_common::Pose {
                         orientation: Quat {
@@ -158,25 +181,6 @@ async fn websocket_handler(websocket: WebSocket) {
                     face_data: alvr_packets::FaceData { eye_gazes: [None, None], fb_face_expression: None, htc_eye_expression: None, htc_lip_expression: None },
                 });
 
-                let config = ([
-                    alvr_common::Fov {
-                        left: f32::from_le_bytes(data[64..68].try_into().unwrap()),
-                        right: f32::from_le_bytes(data[68..72].try_into().unwrap()),
-                        up: f32::from_le_bytes(data[72..76].try_into().unwrap()),
-                        down: f32::from_le_bytes(data[76..80].try_into().unwrap()),
-                    },
-                    alvr_common::Fov {
-                        left: f32::from_le_bytes(data[80..84].try_into().unwrap()),
-                        right: f32::from_le_bytes(data[84..88].try_into().unwrap()),
-                        up: f32::from_le_bytes(data[88..92].try_into().unwrap()),
-                        down: f32::from_le_bytes(data[92..96].try_into().unwrap()),
-                    }
-                ], 0.063f32);
-                // println!("config: l.l={}, l.r={}, l.u={}, l.d={}, r.l={}, r.r={}, r.u={}, r.d={}", config.0[0].left, config.0[0].right, config.0[0].up, config.0[0].down, config.0[1].left, config.0[1].right, config.0[1].up, config.0[1].down);
-                if old_config != Some(config) {
-                    // alvr_client_core::send_views_config(config.0, config.1);
-                    old_config = Some(config);
-                }
             } else {
                 println!("unknown binary: {:?}", data)
             }
