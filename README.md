@@ -5,7 +5,11 @@ Lets try to port ALVR to Web browser!
 NOTE I'm writing this project as proof of concept mode (prefer to reach to "just works" state faster as possible (to reduce chance of get bored me and abandoned) rather than code quality), my code quality is terrible
 
 * alvr/web_gateway: WebSocket server, communicates with WebXR browser and ALVR server (SteamVR)
+  * Run `cargo run --bin web_gateway` to start server
 * web_client: WebXR client, communicates with web_gateway
+  * Prerequisite: Node.js, pnpm (If you don't have `pnpm` command, I'll recommend [corepack](https://nodejs.org/api/corepack.html), it is like Rustup in Cargo but you need to install Node.js since corepack is only for package maangers)
+  * `pnpm install` to install dependencies
+  * going to `web_client` and Run `pnpm vite` to start dev server
 
 Warning, WebXR (and/or) WebCodecs requires "secure context", so you can't get work with HTTP, like `http://192.168.1.5`.
 * If you are using default browser of Oculus/Meta HMD (which is Chromium-base), you can use Chrome port forwarding from open `chrome://inspect/#devices` in your PC
